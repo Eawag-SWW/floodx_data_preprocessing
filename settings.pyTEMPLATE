@@ -1,21 +1,59 @@
 # INSTRUCTIONS
 # - Make a copy of this file and save as settings.py
+# - Adjust input.paths raw_sorted_data_dir and output.data_dir
 # - Adjust paths and names as needed
+
 
 import os
 
-# Raw sorted data directory
-raw_sorted_data_dir = "./2_Sorted"
+# -- INPUT DATA -- #
+input = dict(
+    # Raw sorted data directory
+    raw_sorted_data_dir="",
 
-# Metadata associated to raw sorted data
-sensor_metadata_path = os.path.join(raw_sorted_data_dir, "metadata.csv")
+    # separator for input files
+    separator=";",
 
-# Reprocess all data or only the sensors for which the processed files are missing?
-overwrite = False
+)
 
-# Where to store OCR results
-ocr_results_path = "./_Temp_OCR"
+# Update paths for metadata
+input['sensor_list_path'] = os.path.join(input['raw_sorted_data_dir'], "sensor_list.csv")
+input['sensor_metadata_path'] = os.path.join(input['raw_sorted_data_dir'], "metadata.csv")
+input['ocr_metadata_path'] = os.path.join(input['raw_sorted_data_dir'], "metadata_OCR.csv")
 
-# Directory for storing preprocessed data
-preprocessed_data_dir = "./3_Preprocessed"
 
+# -- PROCESSING SETTINGS -- #
+proc = dict(
+    # Reprocess all csv data or only the sensors for which the processed files are missing?
+    overwrite_csv=False,
+    # Do ocr or not?
+    do_ocr=True,
+
+    # Temporary OCR results
+    ocr_results_path=os.path.join(input['raw_sorted_data_dir'], "_Temp_OCR"),  # Only change this if you know what you are doing!
+    ocr_results_date_format="%d.%m.%Y %H:%M:%S",
+    ocr_results_extension="txt",
+    ocr_results_valcol="value",
+    ocr_results_datecol="datetime",
+    ocr_results_sensorcol="sensor",
+    ocr_results_separator=";"
+)
+
+# -- OUTPUT SETTINGS -- #
+output = dict(
+
+    # Directory for storing preprocessed data
+    data_dir="",
+
+    # Date format for output files
+    date_format="",
+
+    # Separator  for output files
+    separator=";",
+
+    # Extension for output files
+    extension="txt",
+
+    # Write CrateDB json files?
+    write_crateDB=False
+)
