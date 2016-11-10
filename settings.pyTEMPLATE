@@ -1,0 +1,21 @@
+# INSTRUCTIONS
+# - Make a copy of this file and save as settings.py
+# - Adjust paths and names as needed
+
+import os
+
+# Raw sorted data directory
+raw_sorted_data_dir = "./2_Sorted"
+
+# Metadata associated to raw sorted data
+sensor_metadata_path = os.path.join(raw_sorted_data_dir, "metadata.csv")
+
+# Reprocess all data or only the sensors for which the processed files are missing?
+overwrite = False
+
+# Where to store OCR results
+ocr_results_path = "./_Temp_OCR"
+
+# Directory for storing preprocessed data
+preprocessed_data_dir = "./3_Preprocessed"
+

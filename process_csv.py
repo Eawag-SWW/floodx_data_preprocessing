@@ -21,29 +21,20 @@ import os
 import glob
 import re
 import datetime
-
-# SETTINGS
-settings = {
-    'overwrite': False,
-    'sensor_list_path': "C:/Users/moydevma/Dropbox/PhD/6_Core_Projects/2016_floodX/5_Experimental_setup/Metrology/Metadata_Logsheet.csv",
-    'sensor_metadata_path': "Q:/Abteilungsprojekte/eng/SWWData/Matthew/PhD_DATA/core_2016_floodX/6_Data/2_Sorted/metadata.csv",
-    'input_dir': "Q:/Abteilungsprojekte/eng/SWWData/Matthew/PhD_DATA/core_2016_floodX/6_Data/2_Sorted",
-    'output_dir_csv': "Q:/Abteilungsprojekte/eng/SWWData/Matthew/PhD_DATA/core_2016_floodX/6_Data/3_Preprocessed/csv",
-    'output_dir_json': "Q:/Abteilungsprojekte/eng/SWWData/Matthew/PhD_DATA/core_2016_floodX/6_Data/3_Preprocessed/json"
-}
+import settings as s
 
 
-def main():
+def process():
     # READ LIST OF SENSORS
     sensorlist = pd.read_csv(
-        filepath_or_buffer=settings['sensor_list_path'],
-        sep=';'
+        filepath_or_buffer=s.input['sensor_list_path'],
+        sep=s.input['separator']
     )
 
     # READ METADATA
     metadata = pd.read_csv(
-        filepath_or_buffer=settings['sensor_metadata_path'],
-        sep=';',
+        filepath_or_buffer=s.input['sensor_metadata_path'],
+        sep=s.input['separator'],
         keep_default_na=False
     )
 
@@ -53,22 +44,22 @@ def main():
 
         current_sensor = row['device code']
 
-        print current_sensor
 
         # check if metadata is ok
         if row['metadata'] == 'ok':
 
-            output_file_csv = os.path.join(settings['output_dir_csv'], current_sensor + '.txt')
-            output_file_json_temp = os.path.join(settings['output_dir_json'], current_sensor + '.json_temp')
-            output_file_json = os.path.join(settings['output_dir_json'], current_sensor + '.json')
+            output_file_csv = os.path.join(s.output['data_dir'], 'csv', current_sensor + '.txt')
+            output_file_json_temp = os.path.join(s.output['data_dir'], 'json', current_sensor + '.json_temp')
+            output_file_json = os.path.join(s.output['data_dir'], 'json', current_sensor + '.json')
 
             # check if csv data was already processed
             if os.path.isfile(output_file_csv):
-                if settings['overwrite'] == True:
+                if s.proc['overwrite_csv']:
                     os.remove(output_file_csv)
                 else:
                     continue
 
+            print current_sensor
             # # check if json data was already processed
             # if os.path.isfile(output_file_json):
             #     if settings['overwrite'] == True:
@@ -83,7 +74,10 @@ def main():
             })
 
             # find datasources
-            for index, datasource in metadata[metadata['sensor'] == current_sensor].iterrows():
+            datasources = metadata[metadata['sensor'] == current_sensor]
+            if len(datasources.index) == 0:
+                print 'WARNING: No rows in metadata found'
+            for index, datasource in datasources.iterrows():
                 print '  ' + datasource['filename_pattern']
                 newdata = read_csv_to_dataframe(datasource)
                 temp_dataframe = pd.concat([temp_dataframe, newdata])
@@ -101,20 +95,21 @@ def main():
                 index=False
             )
 
-            # SAVE TO JSON
-            temp_dataframe.to_json(
-                path_or_buf=output_file_json_temp,
-                orient='records'
-            )
+            if s.output['write_crateDB']:
+                # SAVE TO JSON
+                temp_dataframe.to_json(
+                    path_or_buf=output_file_json_temp,
+                    orient='records'
+                )
 
-            # Change JSON format to match https://crate.io/docs/reference/sql/reference/copy_from.html
-            with open(output_file_json, "wt") as fout:
-                with open(output_file_json_temp, "rt") as fin:
-                    for line in fin:
-                        fout.write(line.replace('[', '').replace(']', '').replace('},{', '}\n{'))
+                # Change JSON format to match https://crate.io/docs/reference/sql/reference/copy_from.html
+                with open(output_file_json, "wt") as fout:
+                    with open(output_file_json_temp, "rt") as fin:
+                        for line in fin:
+                            fout.write(line.replace('[', '').replace(']', '').replace('},{', '}\n{'))
 
-            # Delete temporary JSON
-            os.remove(output_file_json_temp)
+                # Delete temporary JSON
+                os.remove(output_file_json_temp)
 
 
 def read_csv_to_dataframe(datasource):
@@ -125,13 +120,16 @@ def read_csv_to_dataframe(datasource):
     })
 
     # list of matching files
-    files = glob.glob(os.path.join(settings['input_dir'], datasource['filename_pattern']))
+    files = glob.glob(os.path.join(s.input['raw_sorted_data_dir'], datasource['filename_pattern']))
 
     datetime_col_names = filter(bool, [
         datasource['date_col'],
         datasource['time_col'],
         datasource['datetime_col']
     ])
+
+    if len(files) == 0:
+        print 'WARNING: No files found that match metadata pattern'
 
     # for each file, load data into dataframe
     for fn in files:
@@ -193,4 +191,4 @@ def parse_timedelta(time_str):
             time_params[name] = int(param)
     return datetime.timedelta(**time_params)
 
-main()
+
