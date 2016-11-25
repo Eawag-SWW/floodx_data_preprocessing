@@ -38,14 +38,15 @@ def main():
         )
         for index, datasource in datasources.iterrows():
             # print '- OCR for %s' % datasource['']
-            process_ocr.extract_data(datasource)
+            if datasource['do_ocr']:
+                process_ocr.extract_data(datasource)
 
     raw_input("Please make sure the metadata file \n"
-          "  %s\nis updated (and saved!) so that the OCR results can be found \n"
-          "  Enter to continue..." % s.input['sensor_metadata_path'])
+              "  %s\nis updated (and saved!) so that the OCR results can be found \n"
+              "  Enter to continue..." % s.input['sensor_metadata_path'])
 
     # PROCESS TO CSV
-    print '## CONVERTING TO NICE CSV FORMAT ##'
+    print '## FORMATTING DATA ##'
     process_csv.process()
 
     print 'Done. Find results in %s' % s.output['data_dir']

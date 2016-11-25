@@ -28,6 +28,7 @@ proc = dict(
     overwrite_csv=False,
     # Do ocr or not?
     do_ocr=True,
+    save_ocr_crops=False,
 
     # Temporary OCR results
     ocr_results_path=os.path.join(input['raw_sorted_data_dir'], "_Temp_OCR"),  # Only change this if you know what you are doing!

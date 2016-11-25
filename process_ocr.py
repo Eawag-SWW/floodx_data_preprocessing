@@ -19,12 +19,13 @@ def extract_data(datasource):
 
     # regex for checking values
     regex = re.compile(datasource['validation_expression'])
+
     def validate_val(text):
         return regex.match(text)
 
     # date parser function
-    date_parser = lambda date: pd.datetime.strptime(date.strip(), datasource['datetime_format'])
-
+    def date_parser(date):
+        return pd.datetime.strptime(date.strip(), datasource['datetime_format'])
 
     for image_dir in os.listdir(working_dir):
 
@@ -62,12 +63,8 @@ def extract_data(datasource):
 
         # loop through pictures
         # select for images
-        count = 0
+
         for fn in glob.glob(os.path.join(working_dir, image_dir, '*.jpg')):
-            # for testing
-            count += 1
-            if count > 10:
-                break
 
             if os.path.isfile(fn):
                 # For each text section in image, extract information
@@ -95,8 +92,11 @@ def extract_data(datasource):
                             [date_parser(datetime_raw).strftime(s.proc['ocr_results_date_format']),
                              ocr_value,
                              settings_displays.values[displayID]['sensor']])
-
-                    # grayscale.save(os.path.join(output_dir, 'images', datetime+settings_displays.values[displayID]['sensor']+'.jpg'))
+                    if s.proc['save_ocr_crops']:
+                        grayscale.save(os.path.join(
+                            output_dir,
+                            'images',
+                            datetime_raw+'_'+settings_displays.values[displayID]['sensor']+'.jpg'))
 
         # Close all files
         for displayID in settings_displays.values:

@@ -8,11 +8,10 @@
 #  - for reprocessing a sensor X's data
 #    - find all data sources for sensor X
 #    - create a temporary table T in which to store data
-#    - for each datasource, read the data into T, at the same time reformatting datetime and nodata
+#    - for each data source, read the data into T, at the same time reformatting datetime and nodata
 #    - shift the data to realign
 #    - sort the table by datetime
 #    - write the table as a csv
-
 
 
 # PACKAGES
@@ -43,7 +42,6 @@ def process():
     for index, row in sensorlist.iterrows():
 
         current_sensor = row['device code']
-
 
         # check if metadata is ok
         if row['metadata'] == 'ok':
@@ -77,7 +75,7 @@ def process():
             datasources = metadata[metadata['sensor'] == current_sensor]
             if len(datasources.index) == 0:
                 print 'WARNING: No rows in metadata found'
-            for index, datasource in datasources.iterrows():
+            for index2, datasource in datasources.iterrows():
                 print '  ' + datasource['filename_pattern']
                 newdata = read_csv_to_dataframe(datasource)
                 temp_dataframe = pd.concat([temp_dataframe, newdata])
@@ -133,8 +131,6 @@ def read_csv_to_dataframe(datasource):
 
     # for each file, load data into dataframe
     for fn in files:
-        # date parser function
-        parser = lambda date: pd.datetime.strptime(date.strip(), datasource['datetime_format'])
 
         # read data into temp
         temp = pd.read_csv(
@@ -142,7 +138,7 @@ def read_csv_to_dataframe(datasource):
             filepath_or_buffer=fn,
             usecols=datetime_col_names + [datasource['data_col']],
             parse_dates={'dt': datetime_col_names},  # list of lists --> combine columns
-            date_parser=parser,
+            date_parser=lambda date: pd.datetime.strptime(date.strip(), datasource['datetime_format']),
             na_values=datasource['nodata_vals'].split(),
             engine='python'
         )
@@ -156,22 +152,22 @@ def read_csv_to_dataframe(datasource):
         if not datasource['max_valid_value'] == '':
             temp = temp[temp.value <= float(datasource['max_valid_value'])]
 
+        # Apply floor value when relevant (e.g. replace anything below 3 with 3)
+        if not datasource['floor_value'] == '':
+            temp.loc[temp.value < datasource['floor_value'], 'value'] = datasource['floor_value']
+
         # For ultrasonic sensors that contain raw values, use ground level to compute water level
         if not datasource['ground_level'] == '':
             temp.value = float(datasource['ground_level']) - temp.value
 
-
         # SHIFT TIME
         # the minus sign is important
         temp['datetime'] = temp['datetime'] - parse_timedelta(datasource['time_shift'])
-        # temp.shift(freq=-parse_timedelta(datasource['time_shift']))
 
         # concatenate it to dataframe
         temp_dataframe = pd.concat([temp_dataframe, temp])
 
     return temp_dataframe
-
-
 
 
 def parse_timedelta(time_str):
@@ -190,5 +186,3 @@ def parse_timedelta(time_str):
         if param:
             time_params[name] = int(param)
     return datetime.timedelta(**time_params)
-
-
