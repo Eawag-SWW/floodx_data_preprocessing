@@ -18,7 +18,6 @@ def main():
             print "CRITICAL: %s not found. Stopping script." % path
             exit()
 
-
     # Check that output paths are ok. Create directories if missing
     for path in [
         s.proc['ocr_results_path'],
@@ -30,8 +29,8 @@ def main():
             os.makedirs(path)
 
     # PROCESS IMAGES WITH OCR
-    print '## DOING OCR ##'
     if s.proc['do_ocr']:
+        print '## DOING OCR ##'
         datasources = pd.read_csv(
             filepath_or_buffer=s.input['ocr_metadata_path'],
             sep=s.input['separator']
@@ -41,13 +40,13 @@ def main():
             if datasource['do_ocr']:
                 process_ocr.extract_data(datasource)
 
-    raw_input("Please make sure the metadata file \n"
-              "  %s\nis updated (and saved!) so that the OCR results can be found \n"
-              "  Enter to continue..." % s.input['sensor_metadata_path'])
+    # raw_input("Please make sure the metadata file \n"
+    #           "  %s\nis updated (and saved!) so that the OCR results can be found \n"
+    #           "  Enter to continue..." % s.input['sensor_metadata_path'])
 
     # PROCESS TO CSV
     print '## FORMATTING DATA ##'
-    process_csv.process()
+    process_csv.start_gui()
 
     print 'Done. Find results in %s' % s.output['data_dir']
 

@@ -20,14 +20,13 @@ input = dict(
 input['sensor_list_path'] = os.path.join(input['raw_sorted_data_dir'], "sensor_list.csv")
 input['sensor_metadata_path'] = os.path.join(input['raw_sorted_data_dir'], "metadata.csv")
 input['ocr_metadata_path'] = os.path.join(input['raw_sorted_data_dir'], "metadata_OCR.csv")
+input['experiment_list_path'] = os.path.join(input['raw_sorted_data_dir'], "experiment_list.csv")
 
 
 # -- PROCESSING SETTINGS -- #
 proc = dict(
-    # Reprocess all csv data or only the sensors for which the processed files are missing?
-    overwrite_csv=False,
     # Do ocr or not?
-    do_ocr=True,
+    do_ocr=False,
     save_ocr_crops=False,
 
     # Temporary OCR results
@@ -42,6 +41,9 @@ proc = dict(
 
 # -- OUTPUT SETTINGS -- #
 output = dict(
+
+    # What experiments should be exported
+    export_selection="experiments_good",  # Other options are "experiments_extended" and "all_data"
 
     # Directory for storing preprocessed data
     data_dir="",

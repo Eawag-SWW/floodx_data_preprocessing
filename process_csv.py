@@ -21,49 +21,67 @@ import glob
 import re
 import datetime
 import settings as s
+from tkinter import *
+
+# READ LIST OF SENSORS
+sensorlist = pd.read_csv(
+    filepath_or_buffer=s.input['sensor_list_path'],
+    sep=s.input['separator']
+)
+
+# READ METADATA
+metadata = pd.read_csv(
+    filepath_or_buffer=s.input['sensor_metadata_path'],
+    sep=s.input['separator'],
+    keep_default_na=False
+)
+
+# Refine sensor list
+#  check if metadata is ok
+sensorlist = sensorlist[sensorlist['metadata'] == 'ok']
+
+gui_master = Tk()
+do_preprocess = dict()
+
+
+def start_gui():
+
+    # Create dialog iteratively
+    for index, row in sensorlist.iterrows():
+        do_preprocess[row['device code']] = IntVar()
+        Checkbutton(gui_master, text=row['device code'], variable=do_preprocess[row['device code']]).grid(row=index+5, sticky=W)
+    Button(gui_master, text='Quit', command=quit).grid(row=1, sticky=W, pady=4)
+    Button(gui_master, text='Process', command=process).grid(row=2, sticky=W, pady=4)
+    Button(gui_master, text='Select all', command=selectAll).grid(row=3, sticky=W, pady=4)
+    Button(gui_master, text='Deselect all', command=deselectAll).grid(row=4, sticky=W, pady=4)
+    gui_master.lift()
+    mainloop()
+
+
+def selectAll():
+    for sensor in do_preprocess:
+        do_preprocess[sensor].set(1)
+
+
+def deselectAll():
+    for sensor in do_preprocess:
+        do_preprocess[sensor].set(0)
 
 
 def process():
-    # READ LIST OF SENSORS
-    sensorlist = pd.read_csv(
-        filepath_or_buffer=s.input['sensor_list_path'],
-        sep=s.input['separator']
-    )
 
-    # READ METADATA
-    metadata = pd.read_csv(
-        filepath_or_buffer=s.input['sensor_metadata_path'],
-        sep=s.input['separator'],
-        keep_default_na=False
-    )
+    # Close GUI
+    gui_master.destroy()
 
     # LOOP THROUGH SENSORS
-    # only sensors for which status is 'ok'
     for index, row in sensorlist.iterrows():
 
         current_sensor = row['device code']
 
-        # check if metadata is ok
-        if row['metadata'] == 'ok':
-
-            output_file_csv = os.path.join(s.output['data_dir'], 'csv', current_sensor + '.txt')
-            output_file_json_temp = os.path.join(s.output['data_dir'], 'json', current_sensor + '.json_temp')
-            output_file_json = os.path.join(s.output['data_dir'], 'json', current_sensor + '.json')
-
-            # check if csv data was already processed
-            if os.path.isfile(output_file_csv):
-                if s.proc['overwrite_csv']:
-                    os.remove(output_file_csv)
-                else:
-                    continue
+        # check if the sensor was selected to be processed
+        if do_preprocess[current_sensor].get() == 1:
 
             print current_sensor
-            # # check if json data was already processed
-            # if os.path.isfile(output_file_json):
-            #     if settings['overwrite'] == True:
-            #         os.remove(output_file_json)
-            #     else:
-            #         continue
 
             # create temporary table
             temp_dataframe = pd.DataFrame({
@@ -81,33 +99,44 @@ def process():
                 temp_dataframe = pd.concat([temp_dataframe, newdata])
 
             # SORT THE DATAFRAME BY DATETIME
-            temp_dataframe.sort_values(by='datetime', ascending=True)
+            temp_dataframe = temp_dataframe.sort_values(by='datetime', ascending=True)
 
             # ADD COLUMN WITH SENSOR NAME
             temp_dataframe['sensor'] = current_sensor
 
-            # SAVE TO CSV
-            temp_dataframe.to_csv(
-                path_or_buf=output_file_csv,
-                sep=';',
-                index=False
-            )
+            # SAVE DATA
+            if s.output['export_selection'] == 'all_data':
+                save_data(temp_dataframe, current_sensor, current_experiment='all')
+            else:
+                save_data_by_experiment(temp_dataframe, current_sensor, s.output['export_selection'])
 
-            if s.output['write_crateDB']:
-                # SAVE TO JSON
-                temp_dataframe.to_json(
-                    path_or_buf=output_file_json_temp,
-                    orient='records'
-                )
 
-                # Change JSON format to match https://crate.io/docs/reference/sql/reference/copy_from.html
-                with open(output_file_json, "wt") as fout:
-                    with open(output_file_json_temp, "rt") as fin:
-                        for line in fin:
-                            fout.write(line.replace('[', '').replace(']', '').replace('},{', '}\n{'))
+def save_data_by_experiment(data, current_sensor, selection):
 
-                # Delete temporary JSON
-                os.remove(output_file_json_temp)
+    # Read list of experiments
+    experiment_list = pd.read_csv(
+        filepath_or_buffer=s.input['experiment_list_path'],
+        sep=s.input['separator']
+    )
+
+    # Filter list
+    if selection == 'experiments_good':
+        experiment_list_filtered = experiment_list[experiment_list['requirements_met'] == 'ok']
+    elif selection == 'experiments_extended':
+        experiment_list_filtered = experiment_list[experiment_list['requirements_met'] != 'no']
+
+    # For each experiment, extract and save data
+    for index, experiment in experiment_list_filtered.iterrows():
+        # Find start and end datetimes
+        start = pd.to_datetime(experiment['start_datetime'], format='%d.%m.%y %H:%M')
+        end = pd.to_datetime(experiment['end_datetime'], format='%d.%m.%y %H:%M')
+        # Extract data
+        experiment_data = data[(data['datetime'] <= end) & (data['datetime'] >= start)]
+        # Tag extracted data with experiment name
+        experiment_data.is_copy = False
+        experiment_data['experiment'] = str(experiment['id'])
+        # Save data
+        save_data(experiment_data, current_sensor, series_name=str(experiment['id']))
 
 
 def read_csv_to_dataframe(datasource):
@@ -154,7 +183,7 @@ def read_csv_to_dataframe(datasource):
 
         # Apply floor value when relevant (e.g. replace anything below 3 with 3)
         if not datasource['floor_value'] == '':
-            temp.loc[temp.value < datasource['floor_value'], 'value'] = datasource['floor_value']
+            temp.loc[temp.value <= float(datasource['floor_value']), 'value'] = float(datasource['floor_value'])
 
         # For ultrasonic sensors that contain raw values, use ground level to compute water level
         if not datasource['ground_level'] == '':
@@ -186,3 +215,45 @@ def parse_timedelta(time_str):
         if param:
             time_params[name] = int(param)
     return datetime.timedelta(**time_params)
+
+
+def save_data(data_to_save, current_sensor, series_name):
+    # File names
+    basename = series_name + '_' + current_sensor
+    output_file_csv = os.path.join(s.output['data_dir'], 'csv', series_name, basename + '.txt')
+    output_file_json_temp = os.path.join(s.output['data_dir'], 'json', series_name, basename + '.json_temp')
+    output_file_json = os.path.join(s.output['data_dir'], 'json', series_name, basename + '.json')
+
+    # Check that output paths are ok. Create directories if missing
+    for path in [
+        s.proc['ocr_results_path'],
+        os.path.join(s.output['data_dir'], 'csv', series_name),
+        os.path.join(s.output['data_dir'], 'json', series_name)
+    ]:
+        if not os.path.exists(path):
+            print "INFO: %s not found. Creating directory." % path
+            os.makedirs(path)
+
+    # SAVE TO CSV
+    data_to_save.to_csv(
+        path_or_buf=output_file_csv,
+        sep=';',
+        columns=['datetime', 'value'],
+        index=False
+    )
+
+    if s.output['write_crateDB']:
+        # SAVE TO JSON
+        data_to_save.to_json(
+            path_or_buf=output_file_json_temp,
+            orient='records'
+        )
+
+        # Change JSON format to match https://crate.io/docs/reference/sql/reference/copy_from.html
+        with open(output_file_json, "wt") as fout:
+            with open(output_file_json_temp, "rt") as fin:
+                for line in fin:
+                    fout.write(line.replace('[', '').replace(']', '').replace('},{', '}\n{'))
+
+        # Delete temporary JSON
+        os.remove(output_file_json_temp)
