@@ -1,5 +1,5 @@
 # floodx_data_preprocessing
-Python script for preprocessing floodx data into uniform and readable format.
+Python script for preprocessing floodx data into uniform and readable format. Learn more about the project here: http://www.eawag.ch/en/department/sww/projects/floodx/.
 
 ## Dependencies
  - Python 2.X
