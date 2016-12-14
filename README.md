@@ -3,7 +3,7 @@ Python script for preprocessing floodx data into uniform and readable format. Le
 
 ## Dependencies
  - Python 2.7X (We recommend the Anaconda package: https://www.continuum.io/downloads)
- - Optical character recognition (OCR) is used to read sensor values from images. The **pytesseract** (https://pypi.python.org/pypi/pytesseract) package used requires that you install tesseract-ocr. The following Wiki is the reference guide: https://github.com/tesseract-ocr/tesseract/wiki.
+ - Optical character recognition (OCR) is used to read sensor values from images. The **pytesseract** (https://pypi.python.org/pypi/pytesseract) package used requires that you install **tesseract-ocr**. The following Wiki for  **tesseract-ocr** provides useful information: https://github.com/tesseract-ocr/tesseract/wiki.
  - The following Python packages are required:
   - **pandas** for working with time series
   - **os** for working with filesystem
