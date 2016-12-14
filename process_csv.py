@@ -18,7 +18,6 @@
 import pandas as pd
 import os
 import glob
-import re
 import datetime
 import settings as s
 from tkinter import *
