@@ -26,3 +26,6 @@ The following Python packages are required:
  - The `floodX Datasets` package contains the default version of this script in the `code` folder.
  - If you wish to update the files in the `code` folder, you can replace them with the files of this Github repository.
  - Open `settings.py`, and update the paths in `metadata/metadata_ocr.csv` to point to where you unpacked the `floodX Datalogger Images` package.
+
+## Troubleshooting
+ - If you have installed tesseract and can call tesseract from the command line using "tesseract", but still get an error when using pytesseract like "system cannot find the file specified", then try restarting your Python environment - the PATH may need to be updated.
