@@ -3,7 +3,7 @@ Python script for preprocessing floodx data into uniform and readable format. Le
 
 ## Dependencies
 ### Tesseract OCR
-**tesseract-ocr** executable. Optical character recognition (OCR) is used to read sensor values from images. The **pytesseract** (https://pypi.python.org/pypi/pytesseract) package used requires that you install **tesseract-ocr**. The following Wiki for  **tesseract-ocr** provides useful information: https://github.com/tesseract-ocr/tesseract/wiki.
+**tesseract-ocr** executable. Optical character recognition (OCR) is used to read sensor values from images. The **pytesseract** (https://pypi.python.org/pypi/pytesseract) package used requires that you install **tesseract-ocr**. The following Wiki for  **tesseract-ocr** provides useful information: https://github.com/tesseract-ocr/tesseract/wiki. You must be able to invoke the tesseract command as "tesseract". If this isn't the case, for example because tesseract isn't in your PATH, you will have to change the "tesseract_cmd" variable at the top of 'tesseract.py'.
 ### Python
 **Python 2.7X** is recommended. We recommend installing the Anaconda package: https://www.continuum.io/downloads
 ### Python packages
