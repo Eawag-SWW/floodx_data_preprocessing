@@ -10,7 +10,7 @@ import os
 def main():
     # Check that input paths are ok.
     for path in [
-        s.input['raw_sorted_data_dir'],
+        s.input['raw_data_dir'],
         s.input['sensor_metadata_path'],
         s.input['ocr_metadata_path']
     ]:

@@ -14,7 +14,7 @@ import pandas as pd
 
 def extract_data(datasource):
     # overall image directory
-    working_dir = os.path.join(s.input['raw_sorted_data_dir'], datasource['directory'])
+    working_dir = os.path.join(s.input['datalogger_image_dir'], datasource['directory'])
     output_dir = s.proc['ocr_results_path']
 
     # regex for checking values

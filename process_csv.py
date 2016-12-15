@@ -20,7 +20,7 @@ import os
 import glob
 import datetime
 import settings as s
-from tkinter import *
+from Tkinter import *
 
 # READ LIST OF SENSORS
 sensorlist = pd.read_csv(
@@ -146,7 +146,7 @@ def read_csv_to_dataframe(datasource):
     })
 
     # list of matching files
-    files = glob.glob(os.path.join(s.input['raw_sorted_data_dir'], datasource['filename_pattern']))
+    files = glob.glob(os.path.join(s.input['raw_data_dir'], datasource['filename_pattern']))
 
     datetime_col_names = filter(bool, [
         datasource['date_col'],
@@ -238,6 +238,7 @@ def save_data(data_to_save, current_sensor, series_name):
         path_or_buf=output_file_csv,
         sep=';',
         columns=['datetime', 'value'],
+        date_format=s.output['date_format'],
         index=False
     )
 
