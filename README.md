@@ -1,6 +1,15 @@
 # floodx_data_preprocessing
-Python script for preprocessing floodx data into uniform and readable format. Learn more about the project here: http://www.eawag.ch/en/department/sww/projects/floodx/.
-
+Python script for preprocessing floodx data into uniform and readable format. Learn more about the project here: http://www.eawag.ch/en/department/sww/projects/floodx/. The following transformations are applied:
+ -	Optical Character Recognition of display values
+ - Consolidation
+ -	Sorting
+ -	Formatting
+ -	Offsetting
+ -	Time shifting
+ -	Removal of extreme values
+ -	Segmentation of data by experiment
+ -	Formatting for time series database
+ 
 ## Dependencies
 ### Tesseract OCR
 **tesseract-ocr** executable. Optical character recognition (OCR) is used to read sensor values from images. The **pytesseract** (https://pypi.python.org/pypi/pytesseract) package used requires that you install **tesseract-ocr**. The following Wiki for  **tesseract-ocr** provides useful information: https://github.com/tesseract-ocr/tesseract/wiki. You must be able to invoke the tesseract command as "tesseract". If this isn't the case, for example because tesseract isn't in your PATH, you will have to change the "tesseract_cmd" variable at the top of 'tesseract.py'.
