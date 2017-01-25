@@ -11,8 +11,8 @@ input = dict(
     # Metadata directory
     metadata_dir="../metadata",
 
-    # Datalogger image directory (the one containing m1&m2&m3_h_p_waterpilot_logi and p1_q_mid_promag_logi)
-    datalogger_image_dir="PATH_TO_FLOODX_DATALOGGER_IMAGES",
+    # Datalogger image directory (the one containing m1&m2&m3_h_p_endress_logi and p1_q_mid_endress_logi data)
+    datalogger_image_dir="../../floodX Datalogger Images",
 
     # separator for metadata files
     separator=";",
@@ -29,11 +29,11 @@ input['experiment_list_path'] = os.path.join(input['metadata_dir'], "experiment_
 # -- PROCESSING SETTINGS -- #
 proc = dict(
     # Do ocr or not?
-    do_ocr=False,
+    do_ocr=True,
     save_ocr_crops=False,
 
     # Temporary OCR results
-    ocr_results_path=os.path.join("../data_ocr_result_new"),  # Only change this if you know what you are doing!
+    ocr_results_path="../data_ocr_result",  # Only change this if you know what you are doing!
     ocr_results_date_format="%d.%m.%Y %H:%M:%S",
     ocr_results_extension="txt",
     ocr_results_valcol="value",
@@ -46,7 +46,8 @@ proc = dict(
 output = dict(
 
     # What experiments should be exported
-    export_selection="experiments_good",  # Other options are "experiments_extended"
+    export_selection="all_data",
+    # export_selection="experiments_good",  # Options are "experiments_good", "experiments_extended",
                                           # and "all_data" (see experiment_list.csv in metadata)
 
     # Directory for storing preprocessed data
@@ -61,6 +62,6 @@ output = dict(
     # Extension for output files
     extension="txt",
 
-    # Write CrateDB json files?
+    # Write json files that can be imported into CrateDB?
     write_crateDB=True
 )

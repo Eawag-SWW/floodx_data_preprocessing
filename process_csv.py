@@ -105,7 +105,7 @@ def process():
 
             # SAVE DATA
             if s.output['export_selection'] == 'all_data':
-                save_data(temp_dataframe, current_sensor, current_experiment='all')
+                save_data(temp_dataframe, current_sensor, series_name='all')
             else:
                 save_data_by_experiment(temp_dataframe, current_sensor, s.output['export_selection'])
 
