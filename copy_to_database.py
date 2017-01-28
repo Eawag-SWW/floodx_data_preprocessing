@@ -4,6 +4,12 @@ import os
 import subprocess
 import dbconfig
 
+# This script was tested with the following configuration:
+# Local machine: Windows 7
+# Remote machine: Ubuntu 16.04.1 LTS (GNU/Linux 4.4.0-59-generic x86_64)
+# Database on remote machine: CrateDB 1.0.2
+
+# the following table was created on the remote machine:
 # CRATE TABLE
 # create table floodx (
 #   sensor string,
@@ -12,7 +18,7 @@ import dbconfig
 #   primary key (sensor, datetime)
 # );
 
-input_data_dir = "Q:/Abteilungsprojekte/eng/SWWData/Matthew/PhD_DATA/core_2016_floodX/6_Data/4_Data_Archive/floodX Datasets/data_preprocessed/json/all"
+input_data_dir = ""
 
 
 
@@ -20,10 +26,11 @@ def main():
 
     print 'starting...'
 
-    print 'deleting old data from remote machine'
-    # subprocess.call(["ssh", dbconfig.username+"@"+dbconfig.address, "rmdir", "somedir" ])
+    # print 'deleting old data from remote machine'
+    # subprocess.call(["ssh", dbconfig.username+"@"+dbconfig.address, "rmdir", "somedir" ]) # NOT WORKING YET
+    
     print 'copying data to remote machine'
-    # subprocess.call(["pscp", "-pw", dbconfig.password, os.path.join(input_data_dir, "*"), dbconfig.username+"@"+dbconfig.address+":"+dbconfig.data_dir])
+    subprocess.call(["pscp", "-pw", dbconfig.password, os.path.join(input_data_dir, "*"), dbconfig.username+"@"+dbconfig.address+":"+dbconfig.data_dir])
 
     print 'loading data into database'
     crate_host = dbconfig.address + ":" + dbconfig.port
