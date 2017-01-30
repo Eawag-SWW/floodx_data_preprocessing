@@ -14,22 +14,22 @@ input = dict(
     # Datalogger image directory (the one containing m1&m2&m3_h_p_endress_logi and p1_q_mid_endress_logi data)
     datalogger_image_dir="../../floodX Datalogger Images",
 
-    # separator for metadata files
+    # separator for datasource_files files
     separator=";",
 
 )
 
-# Update paths for metadata
-input['sensor_list_path'] = os.path.join(input['metadata_dir'], "sensor_list.csv")
-input['sensor_metadata_path'] = os.path.join(input['metadata_dir'], "metadata.csv")
-input['ocr_metadata_path'] = os.path.join(input['metadata_dir'], "metadata_OCR.csv")
+# Update paths for metadata files
+input['sensor_list_path'] = os.path.join(input['metadata_dir'], "datasource_list.csv")
+input['datasource_files_path'] = os.path.join(input['metadata_dir'], "datasource_files.csv")
+input['ocr_datasource_files_path'] = os.path.join(input['metadata_dir'], "datasource_files_ocr.csv")
 input['experiment_list_path'] = os.path.join(input['metadata_dir'], "experiment_list.csv")
 
 
 # -- PROCESSING SETTINGS -- #
 proc = dict(
     # Do ocr or not?
-    do_ocr=True,
+    do_ocr=False,  #True,
     save_ocr_crops=False,
 
     # Temporary OCR results
@@ -48,7 +48,7 @@ output = dict(
     # What experiments should be exported
     export_selection="all_data",
     # export_selection="experiments_good",  # Options are "experiments_good", "experiments_extended",
-                                          # and "all_data" (see experiment_list.csv in metadata)
+                                          # and "all_data" (see experiment_list.csv in datasource_files)
 
     # Directory for storing preprocessed data
     data_dir="../data_preprocessed",

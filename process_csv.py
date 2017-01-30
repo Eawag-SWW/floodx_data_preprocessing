@@ -23,21 +23,21 @@ import settings as s
 from Tkinter import *
 
 # READ LIST OF SENSORS
-sensorlist = pd.read_csv(
+datasource_list = pd.read_csv(
     filepath_or_buffer=s.input['sensor_list_path'],
     sep=s.input['separator']
 )
 
 # READ METADATA
-metadata = pd.read_csv(
-    filepath_or_buffer=s.input['sensor_metadata_path'],
+datasource_files = pd.read_csv(
+    filepath_or_buffer=s.input['datasource_files_path'],
     sep=s.input['separator'],
     keep_default_na=False
 )
 
 # Refine sensor list
-#  check if metadata is ok
-sensorlist = sensorlist[sensorlist['metadata'] == 'ok']
+#  check if datasource_files is ok
+datasource_list = datasource_list[datasource_list['metadata'] == 'ok']
 
 gui_master = Tk()
 do_preprocess = dict()
@@ -46,25 +46,25 @@ do_preprocess = dict()
 def start_gui():
 
     # Create dialog iteratively
-    for index, row in sensorlist.iterrows():
-        do_preprocess[row['device code']] = IntVar()
-        Checkbutton(gui_master, text=row['device code'], variable=do_preprocess[row['device code']]).grid(row=index+5, sticky=W)
-    Button(gui_master, text='Quit', command=quit).grid(row=1, sticky=W, pady=4)
-    Button(gui_master, text='Process', command=process).grid(row=2, sticky=W, pady=4)
+    for index, row in datasource_list.iterrows():
+        do_preprocess[row['datasource']] = IntVar()
+        Checkbutton(gui_master, text=row['datasource'], variable=do_preprocess[row['datasource']]).grid(row=index+5, sticky=W)
     Button(gui_master, text='Select all', command=selectAll).grid(row=3, sticky=W, pady=4)
     Button(gui_master, text='Deselect all', command=deselectAll).grid(row=4, sticky=W, pady=4)
+    Button(gui_master, text='Process data', command=process).grid(row=2, sticky=W, pady=4)
+    Button(gui_master, text='Cancel', command=quit).grid(row=1, sticky=W, pady=4)
     gui_master.lift()
     mainloop()
 
 
 def selectAll():
-    for sensor in do_preprocess:
-        do_preprocess[sensor].set(1)
+    for datasource in do_preprocess:
+        do_preprocess[datasource].set(1)
 
 
 def deselectAll():
-    for sensor in do_preprocess:
-        do_preprocess[sensor].set(0)
+    for datasource in do_preprocess:
+        do_preprocess[datasource].set(0)
 
 
 def process():
@@ -73,14 +73,14 @@ def process():
     gui_master.destroy()
 
     # LOOP THROUGH SENSORS
-    for index, row in sensorlist.iterrows():
+    for index, row in datasource_list.iterrows():
 
-        current_sensor = row['device code']
+        current_datasource = row['datasource']
 
         # check if the sensor was selected to be processed
-        if do_preprocess[current_sensor].get() == 1:
+        if do_preprocess[current_datasource].get() == 1:
 
-            print current_sensor
+            print current_datasource
 
             # create temporary table
             temp_dataframe = pd.DataFrame({
@@ -88,11 +88,11 @@ def process():
                 'value': []
             })
 
-            # find datasources
-            datasources = metadata[metadata['sensor'] == current_sensor]
-            if len(datasources.index) == 0:
-                print 'WARNING: No rows in metadata found'
-            for index2, datasource in datasources.iterrows():
+            # find files linked to datasources
+            datasource_file = datasource_files[datasource_files['datasource'] == current_datasource]
+            if len(datasource_file.index) == 0:
+                print 'WARNING: No files associated to current datasource. Please check metadata'
+            for index2, datasource in datasource_file.iterrows():
                 print '  ' + datasource['filename_pattern']
                 newdata = read_csv_to_dataframe(datasource)
                 temp_dataframe = pd.concat([temp_dataframe, newdata])
@@ -101,13 +101,13 @@ def process():
             temp_dataframe = temp_dataframe.sort_values(by='datetime', ascending=True)
 
             # ADD COLUMN WITH SENSOR NAME
-            temp_dataframe['sensor'] = current_sensor
+            temp_dataframe['sensor'] = current_datasource
 
             # SAVE DATA
             if s.output['export_selection'] == 'all_data':
-                save_data(temp_dataframe, current_sensor, series_name='all')
+                save_data(temp_dataframe, current_datasource, series_name='all')
             else:
-                save_data_by_experiment(temp_dataframe, current_sensor, s.output['export_selection'])
+                save_data_by_experiment(temp_dataframe, current_datasource, s.output['export_selection'])
 
 
 def save_data_by_experiment(data, current_sensor, selection):
@@ -155,7 +155,7 @@ def read_csv_to_dataframe(datasource):
     ])
 
     if len(files) == 0:
-        print 'WARNING: No files found that match metadata pattern'
+        print 'WARNING: No files found that match datasource_files pattern'
 
     # for each file, load data into dataframe
     for fn in files:

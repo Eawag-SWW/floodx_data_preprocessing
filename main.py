@@ -11,8 +11,8 @@ def main():
     # Check that input paths are ok.
     for path in [
         s.input['raw_data_dir'],
-        s.input['sensor_metadata_path'],
-        s.input['ocr_metadata_path']
+        s.input['datasource_files_path'],
+        s.input['ocr_datasource_files_path']
     ]:
         if not os.path.exists(path):
             print "CRITICAL: %s not found. Stopping script." % path
@@ -32,7 +32,7 @@ def main():
     if s.proc['do_ocr']:
         print '## DOING OCR ##'
         datasources = pd.read_csv(
-            filepath_or_buffer=s.input['ocr_metadata_path'],
+            filepath_or_buffer=s.input['ocr_datasource_files_path'],
             sep=s.input['separator']
         )
         for index, datasource in datasources.iterrows():
@@ -40,7 +40,7 @@ def main():
             if datasource['do_ocr']:
                 process_ocr.extract_data(datasource)
 
-    # raw_input("Please make sure the metadata file \n"
+    # raw_input("Please make sure the datasource_files file \n"
     #           "  %s\nis updated (and saved!) so that the OCR results can be found \n"
     #           "  Enter to continue..." % s.input['sensor_metadata_path'])
 
