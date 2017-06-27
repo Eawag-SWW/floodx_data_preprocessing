@@ -47,7 +47,7 @@ output = dict(
 
     # What experiments should be exported
     export_selection="all_data",
-    # export_selection="experiments_good",  # Options are "experiments_good", "experiments_extended",
+    # export_selection="experiments_good",  # Options are "monitoring", "calibration",
                                           # and "all_data" (see experiment_list.csv in datasource_files)
 
     # Directory for storing preprocessed data

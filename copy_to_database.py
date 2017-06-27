@@ -18,7 +18,8 @@ import dbconfig
 #   primary key (sensor, datetime)
 # );
 
-input_data_dir = ""
+input_data_dir = ["../data_preprocessed/json/all"]
+# input_data_dir = ["../data_preprocessed/json/" + end for end in os.listdir("../data_preprocessed/json/")]
 
 
 
@@ -26,11 +27,13 @@ def main():
 
     print 'starting...'
 
-    # print 'deleting old data from remote machine'
-    # subprocess.call(["ssh", dbconfig.username+"@"+dbconfig.address, "rmdir", "somedir" ]) # NOT WORKING YET
-    
+    print 'deleting old data from remote machine'
+    subprocess.call(
+        ["plink", "-ssh", dbconfig.username + "@" + dbconfig.address, "-pw", dbconfig.password, "rm", "-f", dbconfig.data_dir+'/*'])
+
     print 'copying data to remote machine'
-    subprocess.call(["pscp", "-pw", dbconfig.password, os.path.join(input_data_dir, "*"), dbconfig.username+"@"+dbconfig.address+":"+dbconfig.data_dir])
+    for directory in input_data_dir:
+        subprocess.call(["pscp", "-pw", dbconfig.password, os.path.join(directory, "*"), dbconfig.username+"@"+dbconfig.address+":"+dbconfig.data_dir])
 
     print 'loading data into database'
     crate_host = dbconfig.address + ":" + dbconfig.port
@@ -38,10 +41,12 @@ def main():
 
     print 'connected.'
 
-    for fn in glob.glob(os.path.join(input_data_dir, '*.json')):
-        sensor_name, extension = os.path.splitext(os.path.basename(fn))
-        print 'Uploading', sensor_name
-        copy_file(connection=connection, file_name=dbconfig.data_dir + "/" + sensor_name+extension)
+    files, err = subprocess.Popen(["plink", "-ssh", dbconfig.username + "@" + dbconfig.address, "-pw", dbconfig.password, "ls", dbconfig.data_dir+'/*'],
+                                  stdout=subprocess.PIPE, stderr = subprocess.PIPE).communicate()
+
+    for fn in files.split():
+        print 'Uploading', fn
+        copy_file(connection=connection, file_name=fn)
 
     connection.close()
 

@@ -100,6 +100,10 @@ def process():
             # SORT THE DATAFRAME BY DATETIME
             temp_dataframe = temp_dataframe.sort_values(by='datetime', ascending=True)
 
+            # REMOVE BAD VALUES
+            if not row['removal_mask'] == '':
+                temp_dataframe = remove_values(temp_dataframe, os.path.join(s.input['metadata_dir'], row['removal_mask']))
+
             # ADD COLUMN WITH SENSOR NAME
             temp_dataframe['sensor'] = current_datasource
 
@@ -119,10 +123,10 @@ def save_data_by_experiment(data, current_sensor, selection):
     )
 
     # Filter list
-    if selection == 'experiments_good':
-        experiment_list_filtered = experiment_list[experiment_list['requirements_met'] == 'ok']
-    elif selection == 'experiments_extended':
-        experiment_list_filtered = experiment_list[experiment_list['requirements_met'] != 'no']
+    if selection == 'calibration':
+        experiment_list_filtered = experiment_list[experiment_list['experiment_quality'] == 'calibration']
+    elif selection == 'monitoring':
+        experiment_list_filtered = experiment_list[(experiment_list['experiment_quality'] in ['monitoring', 'calibration'])]
 
     # For each experiment, extract and save data
     for index, experiment in experiment_list_filtered.iterrows():
@@ -137,6 +141,18 @@ def save_data_by_experiment(data, current_sensor, selection):
         # Save data
         save_data(experiment_data, current_sensor, series_name=str(experiment['id']))
 
+def remove_values(data, mask_file):
+    # read list of periods to remove
+    mask_list = pd.read_csv(
+        filepath_or_buffer= mask_file,
+        sep=';'
+    )
+    for index, row in mask_list.iterrows():
+        start = pd.to_datetime(row['start'], format='%d.%m.%y %H:%M:%S')
+        end = pd.to_datetime(row['end'], format='%d.%m.%y %H:%M:%S')
+        data.loc[(data['datetime'] <= end) & (data['datetime'] >= start), 'value'] = 0
+
+    return data
 
 def read_csv_to_dataframe(datasource):
     # read csv(s) into temporary table
@@ -180,13 +196,13 @@ def read_csv_to_dataframe(datasource):
         if not datasource['max_valid_value'] == '':
             temp = temp[temp.value <= float(datasource['max_valid_value'])]
 
-        # Apply floor value when relevant (e.g. replace anything below 3 with 3)
-        if not datasource['floor_value'] == '':
-            temp.loc[temp.value <= float(datasource['floor_value']), 'value'] = float(datasource['floor_value'])
-
         # For ultrasonic sensors that contain raw values, use ground level to compute water level
         if not datasource['ground_level'] == '':
             temp.value = float(datasource['ground_level']) - temp.value
+
+        # Apply floor value when relevant (e.g. replace anything below 3 with 3)
+        if not datasource['floor_value'] == '':
+            temp.loc[temp.value <= float(datasource['floor_value']), 'value'] = float(datasource['floor_value'])
 
         # SHIFT TIME
         # the minus sign is important
