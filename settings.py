@@ -46,9 +46,8 @@ proc = dict(
 output = dict(
 
     # What experiments should be exported
-    export_selection="all_data",
-    # export_selection="experiments_good",  # Options are "monitoring", "calibration",
-                                          # and "all_data" (see experiment_list.csv in datasource_files)
+    export_selection="monitoring",
+    # Options are "monitoring", "calibration", and "all_data" (see experiment_list.csv in datasource_files)
 
     # Directory for storing preprocessed data
     data_dir="../data_preprocessed",
@@ -63,5 +62,5 @@ output = dict(
     extension="txt",
 
     # Write json files that can be imported into CrateDB?
-    write_crateDB=True
+    write_crateDB=False
 )

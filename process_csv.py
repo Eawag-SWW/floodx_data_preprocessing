@@ -16,6 +16,7 @@
 
 # PACKAGES
 import pandas as pd
+import math
 import os
 import glob
 import datetime
@@ -101,7 +102,7 @@ def process():
             temp_dataframe = temp_dataframe.sort_values(by='datetime', ascending=True)
 
             # REMOVE BAD VALUES
-            if not row['removal_mask'] == '':
+            if not row['removal_mask'] == ' ':
                 temp_dataframe = remove_values(temp_dataframe, os.path.join(s.input['metadata_dir'], row['removal_mask']))
 
             # ADD COLUMN WITH SENSOR NAME
@@ -126,7 +127,7 @@ def save_data_by_experiment(data, current_sensor, selection):
     if selection == 'calibration':
         experiment_list_filtered = experiment_list[experiment_list['experiment_quality'] == 'calibration']
     elif selection == 'monitoring':
-        experiment_list_filtered = experiment_list[(experiment_list['experiment_quality'] in ['monitoring', 'calibration'])]
+        experiment_list_filtered = experiment_list[(experiment_list['experiment_quality'] != 'insufficient')]
 
     # For each experiment, extract and save data
     for index, experiment in experiment_list_filtered.iterrows():
